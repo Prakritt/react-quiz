@@ -7,6 +7,7 @@ import StartScreen from "./StartScreen";
 import Question from "./Question";
 import Progress from "./Progress";
 import FinishScreen from "./FinishScreen";
+import Timer from "./Timer";
 function App() {
   const initialState = {
     questions: [],
@@ -16,6 +17,7 @@ function App() {
     answer: null,
     points: 0,
     highScore: 0,
+    secondsRemaining: 120,
   };
   function reducer(state, action) {
     switch (action.type) {
@@ -53,16 +55,26 @@ function App() {
         return {
           ...state,
           status: "finish",
-          hishScore:
+          highScore:
             state.points > state.highScore ? state.points : state.highScore,
+        };
+      case "restart":
+        return { ...state, status: "ready", answer: null, index: 0, points: 0 };
+      case "tick":
+        return {
+          ...state,
+          secondsRemaining: state.secondsRemaining - 1,
+          status: state.secondsRemaining === 0 ? "finish" : state.status,
         };
       default:
         throw new Error("Action Unknown");
     }
   }
 
-  const [{ questions, status, index, answer, points, highScore }, dispatch] =
-    useReducer(reducer, initialState);
+  const [
+    { questions, status, index, answer, points, highScore, secondsRemaining },
+    dispatch,
+  ] = useReducer(reducer, initialState);
 
   const numQuestions = questions.length;
   const maxPossiblePoints = questions.reduce(
@@ -101,6 +113,7 @@ function App() {
               index={index}
               numQuestions={numQuestions}
             />
+            <Timer secondsRemaining={secondsRemaining} dispatch={dispatch} />
           </>
         )}
         {status === "finish" && (
@@ -108,6 +121,7 @@ function App() {
             points={points}
             maxPossiblePoints={maxPossiblePoints}
             highScore={highScore}
+            dispatch={dispatch}
           />
         )}
       </Main>
